@@ -1,0 +1,9 @@
+{
+    "status": true,
+    "message": "Authorization URL created",
+    "data": {
+        "authorization_url": "https://checkout.paystack.com/hdmv5wq54k54ury",
+        "access_code": "hdmv5wq54k54ury",
+        "reference": "ivln8qqndx"
+    }
+}
