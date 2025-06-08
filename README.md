@@ -109,7 +109,9 @@ python manage.py test
     
 ## ✅ You should copy .env.example → .env in your project root:
 
-```cp .env.example .env```
+```bash
+cp .env.example .env
+```
 
 - ✅ Then edit .env with your real secrets:
 
