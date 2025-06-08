@@ -4,5 +4,5 @@ from .views import PaystackInitializeAPIView, PaystackVerifyAPIView, PaystackWeb
 urlpatterns = [
     path('payments/', PaystackInitializeAPIView.as_view()), # , name='payments'),
     path('payments/<str:reference>/', PaystackVerifyAPIView.as_view()), # , name='payments'),
-    path('payments/webhook/', PaystackWebhookAPIView.as_view())
+    path('webhook/', PaystackWebhookAPIView.as_view())
 ]
