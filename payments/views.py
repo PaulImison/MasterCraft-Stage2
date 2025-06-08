@@ -56,8 +56,9 @@ class PaystackInitializeAPIView(APIView):
 
 # DRF view to verify transaction (optional if using webhook)
 class PaystackVerifyAPIView(APIView):
-    def get(self, request):
-        reference = request.query_params.get('reference')
+    def get(self, request, reference):
+        # reference = request.query_params.get('reference')
+        # reference = reference
 
         if not reference:
             return Response({"error": "No transaction reference provided."}, status=status.HTTP_400_BAD_REQUEST)
@@ -68,11 +69,20 @@ class PaystackVerifyAPIView(APIView):
         }
         response = requests.get(url, headers=headers)
         result = response.json()
+        print(result)
 
         if result.get("status") and result["data"]["status"] == "success":
             # Here you would normally mark order/transaction as paid in your DB
             return Response({
                 "status": "success",
+                "reference": result["data"]["reference"],
+                "amount": result["data"]["amount"] / 100,  # convert back to NGN
+                "email": result["data"]["customer"]["email"]
+            }, status=status.HTTP_200_OK)
+        elif result.get("status") and result["data"]["status"] == "abandoned":
+            # Here you would normally mark order/transaction as paid in your DB
+            return Response({
+                "status": "abandoned",
                 "reference": result["data"]["reference"],
                 "amount": result["data"]["amount"] / 100,  # convert back to NGN
                 "email": result["data"]["customer"]["email"]
