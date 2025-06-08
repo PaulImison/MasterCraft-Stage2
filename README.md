@@ -3,10 +3,10 @@
 A Django REST Framework API for initializing, verifying, and handling Paystack payment transactions.
 
 # Live server available on Render at:
-[https://https://mastercraft-stage2.onrender.com/api/v1/payments/<str:param>](https://https://mastercraft-stage2.onrender.com/api/v1/payments/<str:param>) 
+[https://mastercraft-stage2.onrender.com/api/v1/payments/<str:param>](https://mastercraft-stage2.onrender.com/api/v1/payments/<str:param>) 
 
 ## Admin panel at:
-[https://https://mastercraft-stage2.onrender.com/admin](https://https://mastercraft-stage2.onrender.com/admin)
+[https://mastercraft-stage2.onrender.com/admin](https://mastercraft-stage2.onrender.com/admin)
 - User: admin, Password: 1234
 
 ## 🚀 Features
