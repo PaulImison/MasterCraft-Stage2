@@ -98,27 +98,39 @@ class PaystackVerifyAPIView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class PaystackWebhookAPIView(APIView):
     def post(self, request):
+        print(f"Received POST request at webhook URL")
+        print(f"Request headers: {request.headers}")
+        print(f"Request body raw: {request.body}")
         # Verify Paystack sent this
         paystack_signature = request.headers.get('X-Paystack-Signature')
         # Optionally implement signature verification for security (not shown here)
 
         payload = request.body
-        event = json.loads(payload)
+        try:
+            event = json.loads(payload)
+            print(f"Parsed event: {event}")
 
-        if event['event'] == 'charge.success':
-            reference = event['data']['reference']
-            amount_paid = event['data']['amount'] / 100
-            paid_at_time = event['data']['paid_at']
+            if event['event'] == 'charge.success':
+                reference = event['data']['reference']
+                amount_paid = event['data']['amount'] / 100
+                paid_at_time = event['data']['paid_at']
 
-            try:
-                transaction = Transaction.objects.get(reference=reference)
-                transaction.status = 'success'
-                transaction.paid_at = now()  # Optional: parse paid_at_time if you want exact timestamp
-                transaction.save()
+                try:
+                    transaction = Transaction.objects.get(reference=reference)
+                    transaction.status = 'success'
+                    transaction.paid_at = now()  # Optional: parse paid_at_time if you want exact timestamp
+                    transaction.save()
 
-                print(f"Payment successful for {reference}")
+                    print(f"Payment successful for {reference}")
 
-            except Transaction.DoesNotExist:
-                print(f"Transaction with reference {reference} not found.")
+                except Transaction.DoesNotExist:
+                    print(f"Transaction with reference {reference} not found.")
 
-        return Response({"status": "ok"}, status=status.HTTP_200_OK)
+            return Response({"status": "ok"}, status=status.HTTP_200_OK)
+        
+        except json.JSONDecodeError:
+            print("Invalid JSON received")
+            return Response({"error": "Invalid JSON"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Exception in webhook processing: {e}")
+            return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

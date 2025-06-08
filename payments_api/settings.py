@@ -18,6 +18,9 @@ load_dotenv()
 import dj_database_url
 
 
+# Detect if running on Render.com
+ON_RENDER = os.getenv('RENDER') is not None
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,16 +30,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'django-insecure-!qhu5c_m1r51264uq&=aw+p+ds1i4(utc6eaqoo#nq8d!hn%q*'
-SECRET_KEY = os.getenv('SECRET_KEY', 'SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'unsafe-secret-key')
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', 'PAYSTACK_SECRET_KEY')
 PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', 'PAYSTACK_PUBLIC_KEY_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = not ON_RENDER
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mastercraft-stage2.onrender.com']
-
+if ON_RENDER:
+    # On Render → set allowed hosts (change to your domain or *.onrender.com)
+    ALLOWED_HOSTS = ['mastercraft-stage2.onrender.com']
+else:
+    # Local development
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', ]
 
 # Application definition
 
@@ -91,12 +98,21 @@ WSGI_APPLICATION = 'payments_api.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='sqlite:///db.sqlite3',  # fallback if DATABASE_URL not set
+#         conn_max_age=600
+#     )
+# }
+
+# Database
+DATABASE_URL = os.getenv('DATABASE_URL', os.getenv('PRODUCTION_DATABASE_URL', 'sqlite:///db.sqlite3'))
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',  # fallback if DATABASE_URL not set
-        conn_max_age=600
-    )
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -140,3 +156,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Security headers
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
