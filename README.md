@@ -2,6 +2,13 @@
 
 A Django REST Framework API for initializing, verifying, and handling Paystack payment transactions.
 
+# Live server available on Render at:
+[https://https://mastercraft-stage2.onrender.com/api/v1/payments/<str:param>](https://https://mastercraft-stage2.onrender.com/api/v1/payments/<str:param>) 
+
+## Admin panel at:
+[https://https://mastercraft-stage2.onrender.com/admin](https://https://mastercraft-stage2.onrender.com/admin)
+- User: admin, Password: 1234
+
 ## 🚀 Features
 
 - Initialize Paystack payment transactions  
@@ -23,7 +30,7 @@ A Django REST Framework API for initializing, verifying, and handling Paystack p
 **1. Clone the repo**
 
 ```bash
-git clone https://github.com/yourusername/paystack-payments-api.git
+git clone https://github.com/PaulImison/MasterCraft-Stage2.git
 cd paystack-payments-api
 ```
 
@@ -85,6 +92,30 @@ python manage.py test
   - `ALLOWED_HOSTS`
 
 - Ensure webhook endpoint security in production.
+
+## .env.example
+
+# Django secret key (generate your own for production)
+- DJANGO_SECRET_KEY=your-secret-key
+
+# PostgreSQL database URL (adjust user, password, db name, host, and port)
+- DATABASE_URL=postgres://user:password@localhost:5432/payments_db
+
+# Paystack secret key (from your Paystack dashboard)
+- PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxx
+
+# Allowed hosts (comma-separated list)
+- ALLOWED_HOSTS=localhost,127.0.0.1
+    
+## ✅ You should copy .env.example → .env in your project root:
+
+```cp .env.example .env```
+
+✅ Then edit .env with your real secrets:
+
+- Use Django Secret Key Generator or similar to generate a secure DJANGO_SECRET_KEY.
+- Add your real PAYSTACK_SECRET_KEY from Paystack dashboard.
+- If using Docker or cloud deploy, update DATABASE_URL accordingly.
 
 ## 🌐 Live Server URL
 
