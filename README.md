@@ -93,7 +93,7 @@ python manage.py test
 
 - Ensure webhook endpoint security in production.
 
-## .env.example
+## 📁 .env.example
 
 ### Django secret key (generate your own for production)
 - DJANGO_SECRET_KEY=your-secret-key
@@ -121,9 +121,9 @@ python manage.py test
 
 Access the live API here:
 
-- Swagger UI: `https://mastercraft-stage2.onrender.com/swagger/`  
-- ReDoc: `https://mastercraft-stage2.onrender.com/redoc/`  
-- API root: `https://mastercraft-stage2.onrender.com/api/v1/`
+- Swagger UI: (https://mastercraft-stage2.onrender.com/swagger/)
+- ReDoc: (https://mastercraft-stage2.onrender.com/redoc/)
+- API root: (https://mastercraft-stage2.onrender.com/api/v1/)
 
 ## 📄 API Endpoints Overview
 
