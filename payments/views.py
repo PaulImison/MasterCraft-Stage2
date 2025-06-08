@@ -3,13 +3,13 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
-
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from .models import PaymentTransaction as Transaction
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from .serializers import PaymentTransactionSerializer as TransactionSerializer
 
 # DRF view to initialize transaction
 class PaystackInitializeAPIView(APIView):
@@ -26,6 +26,11 @@ class PaystackInitializeAPIView(APIView):
         Use the authorization_url to redirect user to paystack for payment
         
     """
+    @extend_schema(
+        summary="Initialize Payment",
+        description="Starts a Paystack transaction initialization.",
+        responses={200: OpenApiResponse(description="Initialization successful")},
+    )
     def post(self, request):
         name = request.data.get('name')
         email = request.data.get('email')
@@ -79,6 +84,17 @@ class PaystackVerifyAPIView(APIView):
         
         Returns details of the transaction if successful
     """
+    @extend_schema(
+        summary="Verify Payment",
+        description="Verify the status of a Paystack transaction using its reference.",
+        responses={
+            200: TransactionSerializer,
+            404: OpenApiResponse(description="Transaction not found")
+        },
+        parameters=[
+            # Add reference path parameter info if using swagger UI auto params
+        ],
+    )
     def get(self, request, reference):
         # reference = request.query_params.get('reference')
         # reference = reference
@@ -129,6 +145,13 @@ class PaystackWebhookAPIView(APIView):
     Webhook for Paystack on completion of transaction
     
     """
+    @extend_schema(
+        summary="Paystack Webhook",
+        description="Receives Paystack payment event notifications.",
+        request=None,
+        responses={200: OpenApiResponse(description="Webhook received")},
+        # You can define the expected request body schema here if you want
+    )
     def post(self, request):
         # print(f"Received POST request at webhook URL")
         # print(f"Request headers: {request.headers}")

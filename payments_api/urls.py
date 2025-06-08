@@ -15,12 +15,38 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include, re_path
+from rest_framework import permissions
 from django.conf.urls import include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+
+
+
+# Schema View config
+# schema_view = get_schema_view(
+#     openapi.Info(
+#         title="Payments API",
+#         default_version='v1',
+#         description="API documentation for Paystack Payments",
+#         terms_of_service="https://www.example.com/terms/",
+#         contact=openapi.Contact(email="support@example.com"),
+#         license=openapi.License(name="MIT License"),
+#     ),
+#     public=True,
+#     permission_classes=(permissions.AllowAny,),
+# )
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('payments.urls')),
-    
+
+    # Schema (raw OpenAPI json)
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+
+    # Swagger UI (beautiful interactive docs)
+    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+
+    # ReDoc (alternative beautiful docs)
+    path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
