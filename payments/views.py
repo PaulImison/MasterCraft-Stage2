@@ -13,6 +13,19 @@ from .models import PaymentTransaction as Transaction
 
 # DRF view to initialize transaction
 class PaystackInitializeAPIView(APIView):
+    """_summary_
+
+    Args:
+        APIView (_type_): _description_
+        
+        Initiate Payment Tranasction
+        Requires name, email and amount in kobo within request body
+        
+        Returns authorization_url, access_code and reference
+        
+        Use the authorization_url to redirect user to paystack for payment
+        
+    """
     def post(self, request):
         name = request.data.get('name')
         email = request.data.get('email')
@@ -56,6 +69,16 @@ class PaystackInitializeAPIView(APIView):
 
 # DRF view to verify transaction (optional if using webhook)
 class PaystackVerifyAPIView(APIView):
+    """_summary_
+
+    Args:
+        APIView (_type_): _description_
+        
+        Verify Payment Tranasction
+        Requires reference within url
+        
+        Returns details of the transaction if successful
+    """
     def get(self, request, reference):
         # reference = request.query_params.get('reference')
         # reference = reference
@@ -77,7 +100,10 @@ class PaystackVerifyAPIView(APIView):
                 "status": "success",
                 "reference": result["data"]["reference"],
                 "amount": result["data"]["amount"] / 100,  # convert back to NGN
-                "email": result["data"]["customer"]["email"]
+                "email": result.get('customer', {}).get('email', None)
+                # You can store email if you want (optional):
+                # transaction.customer_email = email
+                # "email": result["data"]["customer"]["email"]
             }, status=status.HTTP_200_OK)
         elif result.get("status") and result["data"]["status"] == "abandoned":
             # Here you would normally mark order/transaction as paid in your DB
@@ -85,7 +111,8 @@ class PaystackVerifyAPIView(APIView):
                 "status": "abandoned",
                 "reference": result["data"]["reference"],
                 "amount": result["data"]["amount"] / 100,  # convert back to NGN
-                "email": result["data"]["customer"]["email"]
+                "email": result.get('customer', {}).get('email', None)
+                # "email": result["data"]["customer"]["email"]
             }, status=status.HTTP_200_OK)
         else:
             return Response({
@@ -97,10 +124,15 @@ class PaystackVerifyAPIView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PaystackWebhookAPIView(APIView):
+    """
+    
+    Webhook for Paystack on completion of transaction
+    
+    """
     def post(self, request):
-        print(f"Received POST request at webhook URL")
-        print(f"Request headers: {request.headers}")
-        print(f"Request body raw: {request.body}")
+        # print(f"Received POST request at webhook URL")
+        # print(f"Request headers: {request.headers}")
+        # print(f"Request body raw: {request.body}")
         # Verify Paystack sent this
         paystack_signature = request.headers.get('X-Paystack-Signature')
         # Optionally implement signature verification for security (not shown here)
@@ -108,7 +140,7 @@ class PaystackWebhookAPIView(APIView):
         payload = request.body
         try:
             event = json.loads(payload)
-            print(f"Parsed event: {event}")
+            # print(f"Parsed event: {event}")
 
             if event['event'] == 'charge.success':
                 reference = event['data']['reference']
