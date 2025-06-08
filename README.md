@@ -121,9 +121,9 @@ python manage.py test
 
 Access the live API here:
 
-- Swagger UI: (https://mastercraft-stage2.onrender.com/swagger/)
-- ReDoc: (https://mastercraft-stage2.onrender.com/redoc/)
-- API root: (https://mastercraft-stage2.onrender.com/api/v1/)
+- [Swagger UI: ](https://mastercraft-stage2.onrender.com/swagger/)
+- [ReDoc: ](https://mastercraft-stage2.onrender.com/redoc/)
+- [API root: ](https://mastercraft-stage2.onrender.com/api/v1/)
 
 ## 📄 API Endpoints Overview
 
