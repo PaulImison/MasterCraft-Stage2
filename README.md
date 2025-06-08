@@ -95,23 +95,23 @@ python manage.py test
 
 ## .env.example
 
-# Django secret key (generate your own for production)
+### Django secret key (generate your own for production)
 - DJANGO_SECRET_KEY=your-secret-key
 
-# PostgreSQL database URL (adjust user, password, db name, host, and port)
+### PostgreSQL database URL (adjust user, password, db name, host, and port)
 - DATABASE_URL=postgres://user:password@localhost:5432/payments_db
 
-# Paystack secret key (from your Paystack dashboard)
+### Paystack secret key (from your Paystack dashboard)
 - PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxx
 
-# Allowed hosts (comma-separated list)
+### Allowed hosts (comma-separated list)
 - ALLOWED_HOSTS=localhost,127.0.0.1
     
 ## ✅ You should copy .env.example → .env in your project root:
 
 ```cp .env.example .env```
 
-✅ Then edit .env with your real secrets:
+- ✅ Then edit .env with your real secrets:
 
 - Use Django Secret Key Generator or similar to generate a secure DJANGO_SECRET_KEY.
 - Add your real PAYSTACK_SECRET_KEY from Paystack dashboard.
@@ -121,9 +121,9 @@ python manage.py test
 
 Access the live API here:
 
-- Swagger UI: `https://api.yourdomain.com/swagger/`  
-- ReDoc: `https://api.yourdomain.com/redoc/`  
-- API root: `https://api.yourdomain.com/api/v1/`
+- Swagger UI: `https://mastercraft-stage2.onrender.com/swagger/`  
+- ReDoc: `https://mastercraft-stage2.onrender.com/redoc/`  
+- API root: `https://mastercraft-stage2.onrender.com/api/v1/`
 
 ## 📄 API Endpoints Overview
 
