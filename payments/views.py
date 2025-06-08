@@ -1,84 +1,114 @@
-from django.shortcuts import render
-
-# Create your views here.
+import requests
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-import requests
-import os
-from .models import PaymentTransaction
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.utils.timezone import now
+from .models import PaymentTransaction as Transaction
 
-class PaystackInitializePaymentView(APIView):
+# DRF view to initialize transaction
+class PaystackInitializeAPIView(APIView):
     def post(self, request):
         name = request.data.get('name')
         email = request.data.get('email')
         amount = request.data.get('amount')
-        payStackKey = os.getenv('PAYSTACK_SECRET_KEY', 'PAYSTACK_SECRET_KEY')
         
-        headers = {
-            "Authorization": f"Bearer {os.getenv('PAYSTACK_SECRET_KEY', 'PAYSTACK_SECRET_KEY')}",
-            "Content-Type": "application/json",
-        }
+        if not email or not amount:
+            return Response({"error": "Email and amount are required."}, status=status.HTTP_400_BAD_REQUEST)
 
+        url = "https://api.paystack.co/transaction/initialize"
+        headers = {
+            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
         data = {
             "email": email,
-            "amount": int(amount) * 100
+            "amount": int(amount) * 100,  # amount in kobo
+            # "callback_url": "https://mastercraft-stage2.onrender.com/api/v1/payments/callback/"
         }
 
-        response = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=data)
+        response = requests.post(url, json=data, headers=headers)
         res_data = response.json()
 
-        if response.status_code == 200:
-            PaymentTransaction.objects.create(
-                reference = res_data["data"]["reference"],
+        if res_data.get("status"):
+            # Save data in DB
+            Transaction.objects.create(
+                reference=res_data["data"]["reference"],
                 name=name,
                 email=email,
-                amount=int(amount) * 100,
-                status="pending"
+                amount=amount,
+                status='pending'
             )
-            return Response(res_data, status=status.HTTP_200_OK)
+            
+            return Response({
+                "authorization_url": res_data["data"]["authorization_url"],
+                "access_code": res_data["data"]["access_code"],
+                "reference": res_data["data"]["reference"]
+            }, status=status.HTTP_200_OK)
         else:
-            return Response(res_data, status=status.HTTP_400_BAD_REQUEST)
-        # return Response(headers, status=status.HTTP_200_OK)
+            return Response({"error": "Failed to initialize transaction."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class PaystackVerifyPaymentView(APIView):
-    def get(self, request, reference):
-        headers = {
-            "Authorization": f"Bearer {os.getenv('PAYSTACK_SECRET_KEY', 'PAYSTACK_SECRET_KEY')}",
-            "Content-Type": "application/json",
-        }
+
+# DRF view to verify transaction (optional if using webhook)
+class PaystackVerifyAPIView(APIView):
+    def get(self, request):
+        reference = request.query_params.get('reference')
+
+        if not reference:
+            return Response({"error": "No transaction reference provided."}, status=status.HTTP_400_BAD_REQUEST)
 
         url = f"https://api.paystack.co/transaction/verify/{reference}"
+        headers = {
+            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"
+        }
         response = requests.get(url, headers=headers)
-        res_data = response.json()
+        result = response.json()
 
-        try:
-            transaction = PaymentTransaction.objects.get(reference=reference)
-            customer_name = transaction.name
-            tData = {
-                "payment": {
-                    "id": res_data["data"]["reference"],
-                    "customer_name": customer_name,
-                    "customer_email": res_data["data"]["customer"]["email"],
-                    "amount": res_data["data"]["amount"],
-                    "status": res_data["data"]["status"],
-                    },
-                "message":res_data["data"]["gateway_response"],
-                }
-            print(tData)
-            if response.status_code == 200 and res_data["data"]["status"] == "success":
-                transaction.status = "success"
-                transaction.save()
-            elif response.status_code == 200:
-                transaction.status = res_data["data"]["status"]
-                transaction.save()
-        except PaymentTransaction.DoesNotExist:
-            return Response({"error": "Transaction not found."}, status=status.HTTP_404_NOT_FOUND)
+        if result.get("status") and result["data"]["status"] == "success":
+            # Here you would normally mark order/transaction as paid in your DB
+            return Response({
+                "status": "success",
+                "reference": result["data"]["reference"],
+                "amount": result["data"]["amount"] / 100,  # convert back to NGN
+                "email": result["data"]["customer"]["email"]
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "status": "failed",
+                "reference": result.get("data", {}).get("reference"),
+                "error": result.get("message")
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(tData, status=response.status_code)
-        # return Response(res_data, status=response.status_code)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PaystackWebhookAPIView(APIView):
+    def post(self, request):
+        # Verify Paystack sent this
+        paystack_signature = request.headers.get('X-Paystack-Signature')
+        # Optionally implement signature verification for security (not shown here)
+
+        payload = request.body
+        event = json.loads(payload)
+
+        if event['event'] == 'charge.success':
+            reference = event['data']['reference']
+            amount_paid = event['data']['amount'] / 100
+            paid_at_time = event['data']['paid_at']
+
+            try:
+                transaction = Transaction.objects.get(reference=reference)
+                transaction.status = 'success'
+                transaction.paid_at = now()  # Optional: parse paid_at_time if you want exact timestamp
+                transaction.save()
+
+                print(f"Payment successful for {reference}")
+
+            except Transaction.DoesNotExist:
+                print(f"Transaction with reference {reference} not found.")
+
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)

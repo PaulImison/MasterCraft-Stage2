@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import PaystackInitializePaymentView, PaystackVerifyPaymentView
+from .views import PaystackInitializeAPIView, PaystackVerifyAPIView, PaystackWebhookAPIView
 
 urlpatterns = [
-    path('payments/', PaystackInitializePaymentView.as_view()), # , name='payments'),
-    path('payments/<str:reference>/', PaystackVerifyPaymentView.as_view()), # , name='payments'),
+    path('payments/', PaystackInitializeAPIView.as_view()), # , name='payments'),
+    path('payments/<str:reference>/', PaystackVerifyAPIView.as_view()), # , name='payments'),
+    path('payments/webhook/', PaystackWebhookAPIView.as_view())
 ]
