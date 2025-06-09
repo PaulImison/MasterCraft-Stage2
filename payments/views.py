@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from .models import PaymentTransaction as Transaction
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-from .serializers import PaymentTransactionSerializer as TransactionSerializer
+# from .serializers import PaymentTransactionSerializer as TransactionSerializer
 
 # DRF view to initialize transaction
 class PaystackInitializeAPIView(APIView):
@@ -88,7 +88,7 @@ class PaystackVerifyAPIView(APIView):
         summary="Verify Payment",
         description="Verify the status of a Paystack transaction using its reference.",
         responses={
-            200: TransactionSerializer,
+            200: OpenApiResponse(description="Transaction found"), #TransactionSerializer,
             404: OpenApiResponse(description="Transaction not found")
         },
         parameters=[
